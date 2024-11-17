@@ -1,0 +1,92 @@
+services:
+  users:
+    build:
+      context: .
+      dockerfile: ./apps/users/Dockerfile
+      target: development
+    command: npm run start:dev users
+    env_file:
+      - ./apps/users/.env
+    depends_on:
+      - mysql-master
+      - mysql-slave
+      - onboarding
+      - rabbitmq
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '3000:3000'
+  onboarding:
+    build:
+      context: .
+      dockerfile: ./apps/onboarding/Dockerfile
+      target: development
+    command: npm run start:dev onboarding
+    env_file:
+      - ./apps/onboarding/.env
+    depends_on:
+      - mysql-master
+      - mysql-slave
+      - rabbitmq
+      - redis
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '4000:4000'
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+  redis:
+    image: redis
+    ports:
+      - '6379:6379'
+  mysql-master:
+    image: docker.io/bitnami/mysql:8.4
+    ports:
+      - '3306:3306'
+    volumes:
+      - 'mysql_master_data:/bitnami/mysql/data'
+    environment:
+      - MYSQL_REPLICATION_MODE=master
+      - MYSQL_REPLICATION_USER=repl_user
+      - MYSQL_REPLICATION_PASSWORD=repl_user_password
+      - MYSQL_USER=my_user
+      - MYSQL_PASSWORD=my_user_password
+      - MYSQL_DATABASE=projectx
+      - MYSQL_ROOT_PASSWORD=root_password
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mysql/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+  mysql-slave:
+    image: docker.io/bitnami/mysql:8.4
+    ports:
+      - '3306'
+    depends_on:
+      - mysql-master
+    environment:
+      - MYSQL_REPLICATION_MODE=slave
+      - MYSQL_REPLICATION_USER=repl_user
+      - MYSQL_USER=my_user
+      - MYSQL_DATABASE=projectx
+      - MYSQL_MASTER_HOST=mysql-master
+      - MYSQL_MASTER_PORT_NUMBER=3306
+      - MYSQL_MASTER_ROOT_PASSWORD=root_password
+      - MYSQL_REPLICATION_PASSWORD=repl_user_password
+      # In case of missing binary files on master, use `true` to reset those binary files. Creating a previous backup is recommended.
+      - MYSQL_REPLICATION_SLAVE_DUMP=false
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mysql/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  mysql_master_data:
+    driver: local
