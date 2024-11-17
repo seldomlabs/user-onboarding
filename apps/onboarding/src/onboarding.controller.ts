@@ -4,7 +4,7 @@ import { RmqService } from '@app/common/rmq/rmq.service';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { ONBOARDING_DL_SERVICE, ONBOARDING_SERVICE } from './constants/service';
 
-@Controller()
+@Controller('onboarding')
 export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService,
     private readonly rmqService: RmqService,

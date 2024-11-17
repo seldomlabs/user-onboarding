@@ -1,7 +1,7 @@
 import { Body, Controller, Get, InternalServerErrorException, Ip, Post, Query } from '@nestjs/common';
 import { UserService } from './users.service';
 
-@Controller()
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -15,7 +15,7 @@ export class UserController {
     }
   }
 
-  @Get('users')
+  @Get()
   async getUsers(@Query('ids') ids: string,@Query('select') selection: string) {
       try {
           const users = await this.userService.findUsers(ids && JSON.parse(ids), selection && JSON.parse(selection));
