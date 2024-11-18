@@ -29,7 +29,7 @@ export class OnboardingService {
       }
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         try {
-            const otpRequestKey = `otp-requests:${ip}`;
+            const otpRequestKey = `otp-requests:${ip + phoneNumber}`;
             const requestCount = await this.redisClient.incr(otpRequestKey);
 
             if (requestCount > 1) {
