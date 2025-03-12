@@ -22,7 +22,7 @@ export class OnboardingService {
         throw new BadRequestException('Unable to send the OTP, phoneNumber or IP are missing!');
       }
       try {
-        await this.redisClient.ping(); // Assuming the RedisService has a ping() method
+        await this.redisClient.ping();
       } catch (err) {
         console.error('Redis connection error:', err);
         throw new InternalServerErrorException('Unable to connect to Redis server');

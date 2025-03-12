@@ -69,4 +69,9 @@ export class UserService {
 
         user.isPhoneVerified = true;
     }
+
+  async findByEmail(email: string, includePassword = false): Promise<any> {
+    return this.userRepository.findOne({ email }, includePassword ? { select: ['id', 'email', 'password'] } : {});
+  }
+  
 }
