@@ -71,7 +71,7 @@ export class UserService {
     }
 
   async findByEmail(email: string, includePassword = false): Promise<any> {
-    return this.userRepository.findOne({ email }, includePassword ? { select: ['id', 'email', 'password'] } : {});
+    return this.userRepository.findOne({ email }, includePassword ? ['email', 'password'] : []);
   }
   
 }

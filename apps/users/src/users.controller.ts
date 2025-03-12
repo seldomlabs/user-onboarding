@@ -14,6 +14,7 @@ export class UserController {
   async register(@Body() userDto: any, @Ip() ip) {
     try {
       const user = await this.userService.createUser(userDto, ip);
+      user.password = undefined
       const token = await this.authService.login(user);
       return { status: "SUCCESS", message: 'User registered successfully', token };
     } catch (err) {
