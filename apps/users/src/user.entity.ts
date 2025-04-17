@@ -1,39 +1,14 @@
-import { AbstractEntity } from '@app/common';
 import { Entity, Column } from 'typeorm';
+import { AbstractEntity } from '@app/common';
 
 @Entity('user')
-export class User extends AbstractEntity{
-
-  @Column()
-  name: string;
-
+export class User extends AbstractEntity {
   @Column({ unique: true })
-  email: string;
-
-  @Column({select: false})
-  password: string;
-
-  @Column()
   phoneNumber: string;
 
   @Column()
-  gender: string;
+  ip: string;
 
   @Column()
-  latitude: string;
-
-  @Column()
-  longitude: string;
-
-  @Column("simple-array")
-  interests: string[];
-
-  @Column({ default: false })
-  isPhoneVerified: boolean;
-
-  @Column()
-  ip: string
-
-  @Column()
-  matchRadius: number
+  userAgent: string;
 }

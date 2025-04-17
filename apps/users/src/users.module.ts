@@ -4,15 +4,15 @@ import { UserService } from './users.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { DatabaseModule } from '@app/common';
-import { User } from './user.entity';
+import { User} from './user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRepository } from './users.repository';
-import { RmqModule } from '@app/common/rmq/rmq.module';
-import { ONBOARDING_SERVICE } from './constants/services';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth-guard';
+import { OnboardingModule } from '../../onboarding/src/onboarding.module';
+import { ProfileRepository } from './profile.repository';
+import { Profile } from './profile.entity';
 
 @Module({
   imports: [
@@ -24,19 +24,13 @@ import { JwtAuthGuard } from './jwt-auth-guard';
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
-        USERS_SERVICE_PORT: Joi.number().required()
+        USERS_SERVICE_PORT: Joi.number().required(),
+        JWT_SECRET: Joi.string().required()
       }),
       envFilePath: './apps/users/.env'
     }),
     PassportModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule.forRoot({
-        isGlobal: true,
-        validationSchema: Joi.object({
-          JWT_SECRET: Joi.string().required(),
-        }),
-        envFilePath: './apps/users/.env'
-      })],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '1d' },
@@ -44,14 +38,11 @@ import { JwtAuthGuard } from './jwt-auth-guard';
       inject: [ConfigService],
     }),
     DatabaseModule,
-    TypeOrmModule.forFeature([User]),
-    RmqModule.register({
-      name: ONBOARDING_SERVICE,
-    }),
-
+    TypeOrmModule.forFeature([User,Profile]),
+    OnboardingModule
   ],
   controllers: [UserController],
-  providers: [UserService,UserRepository,AuthService,JwtAuthGuard],
+  providers: [UserService, UserRepository, ProfileRepository, JwtAuthGuard],
   exports: [JwtAuthGuard]
 })
 export class UsersModule {}

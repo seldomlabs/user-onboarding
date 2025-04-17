@@ -28,7 +28,6 @@ export abstract class AbstractRepository<T extends AbstractEntity> {
 
     if (!entity) {
       this.logger.warn('Entity not found with filter:', filter);
-      throw new NotFoundException('Entity not found.');
     }
 
     return entity;
@@ -43,7 +42,6 @@ export abstract class AbstractRepository<T extends AbstractEntity> {
 
     if (!updatedEntity) {
       this.logger.warn(`Entity not found with ID:`, id);
-      throw new NotFoundException('Entity not found.');
     }
 
     return updatedEntity;

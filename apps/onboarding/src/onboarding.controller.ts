@@ -1,63 +1,46 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Ip, HttpException } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
-import { RmqService } from '@app/common/rmq/rmq.service';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
-import { ONBOARDING_DL_SERVICE, ONBOARDING_SERVICE } from './constants/service';
+import { handleHttpException } from './utils/error.utils';
 
 @Controller('onboarding')
 export class OnboardingController {
-  constructor(private readonly onboardingService: OnboardingService,
-    private readonly rmqService: RmqService,
-  ) 
-  {}
-
-  @EventPattern('user_registered')
-  async handleUserRegistration(@Payload() data: any, @Ctx() context: RmqContext) {
-    const message = context.getMessage();
-    // const retryCount = message.properties.headers['x-retry'] || 0; 
-    // const maxRetries = 1;
-    try{
-    await this.onboardingService.sendOtp(data);
-    this.rmqService.ack(context);
-    }
-    catch(err){
-      console.log('Error handling user_registered event:', err);
-      // if (retryCount < maxRetries) {
-      //   const updatedHeaders = {
-      //     ...message.properties.headers,
-      //   'x-retry': retryCount + 1, 
-      //   };
-      //   await this.rmqService.republishWithRetry(context, updatedHeaders);
-      // } else {
-      //   console.error(
-      //     `Max retries reached for message: ${JSON.stringify(data)}. Sending to DLQ.`,
-      //   );
-      //   await this.rmqService.sendToDLQ(ONBOARDING_DL_SERVICE,context);
-      // }
-    }
-  }
+  constructor(private readonly onboardingService: OnboardingService) {}
 
   @Post('send-otp')
-  async sendOtp(@Body() { phoneNumber }: { phoneNumber: string }) {
+  async sendOtp(@Body() data: { phoneNumber: string }, @Ip() ip: string) {
     try {
-      await this.onboardingService.sendOtp({ phoneNumber });
-      return {status: "SUCCESS", message: 'OTP sent successfully' };
-    } catch (err) {
-      throw err;
+      if (!data.phoneNumber) {
+        throw new HttpException({
+          status: "ERROR",
+          message: "Phone number is required",
+          code: "MISSING_PHONE_NUMBER",
+          statusCode: 400
+        }, 400);
+      }
+
+      await this.onboardingService.sendOtp({ phoneNumber: data.phoneNumber, ip });
+      return { status: "SUCCESS", message: 'OTP sent successfully' };
+    } catch (error) {
+      throw handleHttpException(error);
     }
   }
-
 
   @Post('verify-otp')
-  async verifyOtp(@Body() { phoneNumber, otp }: { phoneNumber: string, otp: string }) {
-    try{
-    await this.onboardingService.verifyOtp(phoneNumber, otp);
-    return { status: "SUCCESS", message: 'Phone number verified' };
-    }
-    catch(err){
-        throw err
+  async verifyOtp(@Body() data: { phoneNumber: string, otp: string }) {
+    try {
+      if (!data.phoneNumber || !data.otp) {
+        throw new HttpException({
+          status: "ERROR",
+          message: "Phone number and OTP are required",
+          code: "MISSING_REQUIRED_FIELDS",
+          statusCode: 400
+        }, 400);
+      }
+
+      const result = await this.onboardingService.verifyOtp(data.phoneNumber, data.otp);
+      return result;
+    } catch (error) {
+      throw handleHttpException(error);
     }
   }
-
-
 }

@@ -2,5 +2,5 @@ import { PrimaryGeneratedColumn, BaseEntity, Column, PrimaryColumn } from 'typeo
 
 export abstract class AbstractEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string | number;
+  id: string;
 }
