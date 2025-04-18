@@ -4,7 +4,6 @@ export interface ErrorResponse {
   status: string;
   message: string;
   code?: string;
-  statusCode?: number;
 }
 
 export const formatErrorMessage = (errorResponse: unknown): string => {
@@ -33,7 +32,6 @@ export const handleHttpException = (error: unknown): HttpException => {
     status: "ERROR",
     message: "Internal server error",
     code: "INTERNAL_SERVER_ERROR",
-    statusCode: 500
   }, HttpStatus.INTERNAL_SERVER_ERROR);
 };
 

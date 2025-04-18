@@ -11,7 +11,6 @@ export class DatabaseError extends HttpException {
       status: "ERROR",
       message,
       code,
-      statusCode
     }, statusCode);
     this.code = code
   }

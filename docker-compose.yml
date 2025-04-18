@@ -49,8 +49,8 @@ services:
       - MYSQL_REPLICATION_PASSWORD=repl_user_password
       - MYSQL_USER=my_user
       - MYSQL_PASSWORD=my_user_password
-      - MYSQL_DATABASE=projectx
-      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=gomegle
+      - MYSQL_ROOT_PASSWORD=Gomegle@123
     healthcheck:
       test: ['CMD', '/opt/bitnami/scripts/mysql/healthcheck.sh']
       interval: 15s
@@ -67,10 +67,10 @@ services:
       - MYSQL_REPLICATION_MODE=slave
       - MYSQL_REPLICATION_USER=repl_user
       - MYSQL_USER=my_user
-      - MYSQL_DATABASE=projectx
+      - MYSQL_DATABASE=gomegle
       - MYSQL_MASTER_HOST=mysql-master
       - MYSQL_MASTER_PORT_NUMBER=3306
-      - MYSQL_MASTER_ROOT_PASSWORD=root_password
+      - MYSQL_MASTER_ROOT_PASSWORD=Gomegle@123
       - MYSQL_REPLICATION_PASSWORD=repl_user_password
       - MYSQL_REPLICATION_SLAVE_DUMP=false
     healthcheck:

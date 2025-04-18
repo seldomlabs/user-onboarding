@@ -7,18 +7,12 @@ export const handleHttpException = (error: any) => {
   }
 
   if (error instanceof DatabaseError) {
-    throw new HttpException({
-      status: "ERROR",
-      message: error.message,
-      code: error.code,
-      statusCode: error.getStatus()
-    }, error.getStatus());
+    throw error;
   }
 
   throw new HttpException({
     status: "ERROR",
     message: "Internal server error",
     code: "INTERNAL_SERVER_ERROR",
-    statusCode: 500
   }, 500);
 }; 

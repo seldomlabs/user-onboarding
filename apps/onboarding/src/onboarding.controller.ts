@@ -1,6 +1,7 @@
-import { Body, Controller, Post, Ip, HttpException } from '@nestjs/common';
+import { Body, Controller, Post, Ip, HttpException, HttpStatus } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
 import { handleHttpException } from './utils/error.utils';
+import { DatabaseError } from './utils/database.utils';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -13,9 +14,16 @@ export class OnboardingController {
         throw new HttpException({
           status: "ERROR",
           message: "Phone number is required",
-          code: "MISSING_PHONE_NUMBER",
-          statusCode: 400
+          code: "MISSING_PHONE_NUMBER"
         }, 400);
+      }
+
+      if (/^\+?[1-9]\d{1,14}$/.test(data.phoneNumber)) {
+        throw new DatabaseError(
+          "Invalid phone number format",
+          "INVALID_PHONE_FORMAT",
+          HttpStatus.BAD_REQUEST
+        );
       }
 
       await this.onboardingService.sendOtp({ phoneNumber: data.phoneNumber, ip });
@@ -33,7 +41,6 @@ export class OnboardingController {
           status: "ERROR",
           message: "Phone number and OTP are required",
           code: "MISSING_REQUIRED_FIELDS",
-          statusCode: 400
         }, 400);
       }
 
