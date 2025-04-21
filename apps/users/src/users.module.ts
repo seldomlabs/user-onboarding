@@ -13,6 +13,9 @@ import { JwtAuthGuard } from './jwt-auth-guard';
 import { OnboardingModule } from '../../onboarding/src/onboarding.module';
 import { ProfileRepository } from './profile.repository';
 import { Profile } from './profile.entity';
+import { MulterModule } from '@nestjs/platform-express';
+import { UploadController } from './upload/upload.controller';
+import { S3Service } from './s3/s3.service';
 
 @Module({
   imports: [
@@ -33,16 +36,21 @@ import { Profile } from './profile.entity';
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: '30d' },
       }),
       inject: [ConfigService],
+    }),
+    MulterModule.register({
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+      },
     }),
     DatabaseModule,
     TypeOrmModule.forFeature([User,Profile]),
     OnboardingModule
   ],
-  controllers: [UserController],
-  providers: [UserService, UserRepository, ProfileRepository, JwtAuthGuard],
-  exports: [JwtAuthGuard]
+  controllers: [UserController,UploadController],
+  providers: [UserService, S3Service, UserRepository, ProfileRepository, JwtAuthGuard],
+  exports: [JwtAuthGuard, S3Service]
 })
 export class UsersModule {}

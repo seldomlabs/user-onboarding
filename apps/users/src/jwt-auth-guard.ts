@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthRequest } from './types/express';
 
@@ -11,7 +11,11 @@ export class JwtAuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid token');
+      throw new  HttpException({
+        status: 'ERROR',
+        message: 'Missing token',
+        code: 'MISSING_TOKEN',
+      }, HttpStatus.UNAUTHORIZED);
     }
 
     const token = authHeader.split(' ')[1];
@@ -21,7 +25,11 @@ export class JwtAuthGuard implements CanActivate {
       request.user = decoded; 
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      throw new HttpException({
+        status: 'ERROR',
+        message: 'Invalid token',
+        code: 'INVALID_TOKEN',
+      }, HttpStatus.UNAUTHORIZED);
     }
   }
 }

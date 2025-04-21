@@ -17,11 +17,48 @@ export class ProfileRepository extends AbstractRepository<Profile> {
     super(profileRepository);
   }
 
+   sanitizeProfile(profile: any): any {
+    if (!profile) return null;
+  
+    const {name, gender, dateOfBirth, interestCategory, interests, images, user,createdAt,updatedAt} = profile;
+    return {
+      ...(user && {
+        user_id: user.id,
+        phoneNumber: user.phoneNumber,
+      }),
+      name,
+      dateOfBirth,
+      gender,
+      interestCategory,
+      interests,
+      images,
+      createdAt,
+      updatedAt
+    };
+  }
+  async findProfileByPhoneNumber(phoneNumber: string): Promise<Profile | null> {
+    try {
+      const profile = await this.profileRepository.findOne({
+        where: { user: {
+          phoneNumber,
+        }},
+        relations: ['user'],
+      });
+      return this.sanitizeProfile(profile)
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw error;
+      }
+      return handleDatabaseError(error);
+    }
+  }
+
   async findProfileByUserId(userId: string): Promise<Profile | null> {
     try {
-      return await this.profileRepository.findOne({
+      const profile =  await this.profileRepository.findOne({
         where: { user: { id: userId } }
       });
+      return this.sanitizeProfile(profile)
     } catch (error) {
       if (error instanceof DatabaseError) {
         throw error;
@@ -37,8 +74,9 @@ export class ProfileRepository extends AbstractRepository<Profile> {
         name: null,
         dateOfBirth: null,
         gender: null,
+        interestCategory: null,
         interests: [],
-        imageUrls: []
+        images: []
       });
       return await this.profileRepository.save(profile);
     } catch (error) {
@@ -59,9 +97,9 @@ export class ProfileRepository extends AbstractRepository<Profile> {
           HttpStatus.NOT_FOUND
         );
       }
-
       Object.assign(profile, profileData);
-      return await this.profileRepository.save(profile);
+      const updatedProfile = await this.profileRepository.save(profile);
+      return this.sanitizeProfile(updatedProfile)
     } catch (error) {
       if (error instanceof DatabaseError) {
         throw error;

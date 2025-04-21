@@ -3,7 +3,7 @@ import { OnboardingService } from './onboarding.service';
 import { handleHttpException } from './utils/error.utils';
 import { DatabaseError } from './utils/database.utils';
 
-@Controller('onboarding')
+@Controller('api/v1/onboarding')
 export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService) {}
 
@@ -15,10 +15,10 @@ export class OnboardingController {
           status: "ERROR",
           message: "Phone number is required",
           code: "MISSING_PHONE_NUMBER"
-        }, 400);
+        }, HttpStatus.BAD_REQUEST);
       }
 
-      if (/^\+?[1-9]\d{1,14}$/.test(data.phoneNumber)) {
+      if (!/^\+\d{2}[0-9]{10}$/.test(data.phoneNumber)) {
         throw new DatabaseError(
           "Invalid phone number format",
           "INVALID_PHONE_FORMAT",
@@ -41,7 +41,7 @@ export class OnboardingController {
           status: "ERROR",
           message: "Phone number and OTP are required",
           code: "MISSING_REQUIRED_FIELDS",
-        }, 400);
+        }, HttpStatus.BAD_REQUEST);
       }
 
       const result = await this.onboardingService.verifyOtp(data.phoneNumber, data.otp);

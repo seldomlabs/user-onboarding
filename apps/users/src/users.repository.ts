@@ -21,25 +21,28 @@ export class UserRepository extends AbstractRepository<User> {
 
   async createOrFetchProfile(userData: Partial<User>): Promise<any> {
     try {
-      const existingUser = await this.userRepository.findOne({
-        where: { phoneNumber: userData.phoneNumber }
-      });
-      if (existingUser) {
-        const profile = await this.profileRepository.findProfileByUserId(existingUser.id);
+      const existingProfile = await this.profileRepository.findProfileByPhoneNumber(userData.phoneNumber);
+      if (existingProfile) {
         return {
-          user: existingUser,
-          profile,
+          user: existingProfile,
           returningUser: true
         };
       }
-
       const user = this.userRepository.create(userData);
       const savedUser = await this.userRepository.save(user);
+      if(!savedUser){
+        throw new DatabaseError("Failed to create the user",
+        "USER_CREATION_FAILED",
+        HttpStatus.INTERNAL_SERVER_ERROR)
+      }
       await this.profileRepository.createEmptyProfile(savedUser);
+
+      const {id, phoneNumber, createdAt, updatedAt} = savedUser;
       
       return {
-        user: savedUser,
-        profile: null,
+        user: {
+        user_id: id,phoneNumber,createdAt,updatedAt
+        },
         returningUser: false
       };
     } catch (error) {

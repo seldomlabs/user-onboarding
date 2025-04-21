@@ -29,7 +29,7 @@ export class OnboardingService {
       );
     }
 
-    if (!/^\+?[1-9]\d{1,14}$/.test(phoneNumber)) {
+    if (!/^\+\d{2}[0-9]{10}$/.test(phoneNumber)) {
       throw new DatabaseError(
         "Invalid phone number format",
         "INVALID_PHONE_FORMAT",

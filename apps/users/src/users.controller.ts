@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, Post, Req, UseGuards, Headers, Ip, Query, InternalServerErrorException, Patch } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Post, Req, UseGuards, Headers, Ip, Query, InternalServerErrorException, Patch, HttpStatus } from '@nestjs/common';
 import { UserService } from './users.service';
 import { JwtAuthGuard } from './jwt-auth-guard';
 import { UserRequest } from './types/request.types';
@@ -6,7 +6,7 @@ import { handleHttpException, createSuccessResponse } from './utils/error.utils'
 import { User } from './user.entity';
 import { Profile } from './profile.entity';
 
-@Controller('users')
+@Controller('api/v1/users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -29,8 +29,7 @@ export class UserController {
             status: "ERROR",
             message: "Invalid select parameter format",
             code: "INVALID_SELECT_FORMAT",
-            statusCode: 400
-          }, 400);
+          }, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -45,8 +44,7 @@ export class UserController {
             status: "ERROR",
             message: "Invalid ids parameter format",
             code: "INVALID_IDS_FORMAT",
-            statusCode: 400
-          }, 400);
+          }, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -69,50 +67,19 @@ export class UserController {
 
   @Post('create-profile')
   async createProfile(
-    @Body() body: { phoneNumber: string, otp: string },
-    @Ip() ip: string,
-    @Headers('user-agent') userAgent: string
+    @Body() body,
+    @Ip() ip: string
   ) {
     return this.userService.createOrFetchProfile(
-      body.phoneNumber,
-      ip,
-      userAgent,
-      body.otp
+      body,
+      ip
     );
   }
 
-  @Post('update-profile')
+  @Patch('update-profile')
   @UseGuards(JwtAuthGuard)
   async updateProfile(@Body() profileData: Profile, @Req() request: UserRequest) {
     const user = request.user;
     return this.userService.updateProfile(profileData, user.id);
-  }
-
-  @Post('send-otp')
-  async sendOtp(@Body() body: { phoneNumber: string }, @Ip() ip: string, @Headers('user-agent') userAgent: string) {
-    try {
-      if (!body.phoneNumber) {
-        throw new HttpException({
-          status: "ERROR",
-          message: "Phone number is required",
-          code: "MISSING_PHONE_NUMBER",
-          statusCode: 400
-        }, 400);
-      }
-
-      if (!userAgent) {
-        throw new HttpException({
-          status: "ERROR",
-          message: "User agent is required",
-          code: "MISSING_USER_AGENT",
-          statusCode: 400
-        }, 400);
-      }
-
-      const result = await this.userService.sendOtp(body.phoneNumber, ip, userAgent);
-      return createSuccessResponse(result);
-    } catch (error) {
-      throw handleHttpException(error);
-    }
   }
 }
