@@ -17,15 +17,16 @@ export class UploadController {
       const userId = req.user.id
       const fileUrls = await this.s3Service.uploadFiles(files,userId);
       
-      return createSuccessResponse({
-        files: fileUrls.map((url, index) => ({
+      return createSuccessResponse(
+        fileUrls.map((url, index) => ({
           key: url,
           filename: files[index].originalname,
           mimetype: files[index].mimetype,
           size: files[index].size,
           uploadedAt: new Date().toISOString()
-        }))
-      }, 'Files uploaded successfully');
+        })),
+        'Files uploaded successfully'
+      );
     } catch (error) {
       throw handleHttpException(error);
     }

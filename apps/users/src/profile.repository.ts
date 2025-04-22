@@ -58,7 +58,7 @@ export class ProfileRepository extends AbstractRepository<Profile> {
       const profile =  await this.profileRepository.findOne({
         where: { user: { id: userId } }
       });
-      return this.sanitizeProfile(profile)
+      return profile
     } catch (error) {
       if (error instanceof DatabaseError) {
         throw error;

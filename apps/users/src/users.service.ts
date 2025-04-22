@@ -45,6 +45,7 @@ export class UserService {
     if (userData.manufacturer) sanitizedData.manufacturer = userData.manufacturer;
     if (userData.locale) sanitizedData.locale = userData.locale;
     if (userData.timezone) sanitizedData.timezone = userData.timezone;
+    if (userData.screenResolution) sanitizedData.screenResolution = userData.screenResolution;
     return sanitizedData;
   }
   
@@ -96,7 +97,7 @@ export class UserService {
     try {
       const sanitizedData = this.validateCreateProfileInput(body);
     //   await this.onboardingService.verifyOtp(phoneNumber, otp);
-
+    sanitizedData.ip = ip
     const {user,returningUser} = await this.userRepository.createOrFetchProfile(sanitizedData)
     
       const token = this.generateToken(user?.user_id);
