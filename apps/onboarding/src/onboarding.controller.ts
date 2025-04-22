@@ -34,7 +34,7 @@ export class OnboardingController {
         );
       }
 
-      await this.onboardingService.sendOtp({ phoneNumber: data.phoneNumber, ip });
+      await this.onboardingService.sendOtp({ phoneNumber: data.phoneNumber, ip , appHash: data.appHash});
       return { status: "SUCCESS", message: 'OTP sent successfully' };
     } catch (error) {
       throw handleHttpException(error);

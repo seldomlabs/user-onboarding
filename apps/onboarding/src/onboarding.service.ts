@@ -18,25 +18,8 @@ export class OnboardingService {
     );
   }
 
-  async sendOtp(data: { phoneNumber: string, ip: string }): Promise<void> {
-    const { phoneNumber, ip } = data;
-    
-    if (!phoneNumber || !ip) {
-      throw new DatabaseError(
-        "Phone number and IP are required",
-        "MISSING_REQUIRED_FIELDS",
-        HttpStatus.BAD_REQUEST
-      );
-    }
-
-    if (!/^\+\d{2}[0-9]{10}$/.test(phoneNumber)) {
-      throw new DatabaseError(
-        "Invalid phone number format",
-        "INVALID_PHONE_FORMAT",
-        HttpStatus.BAD_REQUEST
-      );
-    }
-
+  async sendOtp(data: { phoneNumber: string, ip: string , appHash: string}): Promise<void> {
+    const { phoneNumber, ip , appHash} = data;
     try {
       await this.redisClient.ping();
     } catch (err) {
@@ -54,11 +37,11 @@ export class OnboardingService {
 
     try {
       await this.redisClient.set(key, JSON.stringify({ otp, ip }), ttl);
-      // await this.twilioClient.messages.create({
-      //   body: `Your OTP is: ${otp}`,
-      //   to: phoneNumber,
-      //   from: this.configService.get<string>('TWILIO_PHONE_NUMBER'),
-      // });
+      await this.twilioClient.messages.create({
+        body: `${otp} is your login OTP for Gomegle App. Do not share it with anyone. ${appHash}`,
+        to: phoneNumber,
+        from: this.configService.get<string>('TWILIO_PHONE_NUMBER'),
+      });
     } catch (error) {
       console.error('Error sending OTP:', error);
       throw new DatabaseError(

@@ -96,7 +96,8 @@ export class UserService {
   async createOrFetchProfile(body: Partial<User>, ip: string) {
     try {
       const sanitizedData = this.validateCreateProfileInput(body);
-    //   await this.onboardingService.verifyOtp(phoneNumber, otp);
+      const {phoneNumber,otp} = sanitizedData
+      await this.onboardingService.verifyOtp(phoneNumber, otp);
     sanitizedData.ip = ip
     const {user,returningUser} = await this.userRepository.createOrFetchProfile(sanitizedData)
     
@@ -127,40 +128,6 @@ export class UserService {
       return createSuccessResponse({
         ...profile
       },"Profile updated successfully")
-    } catch (error) {
-      if (error instanceof DatabaseError) {
-        throw error;
-      }
-      return handleDatabaseError(error);
-    }
-  }
-
-
-  async sendOtp(phoneNumber: string, ip: string, userAgent: string) {
-    try {
-      if (!/^\+\d{2}[0-9]{10}$/.test(phoneNumber)) {
-        throw new DatabaseError(
-          'Invalid phone number format',
-          'INVALID_PHONE_FORMAT',
-          HttpStatus.BAD_REQUEST
-        );
-      }
-
-      let user: User;
-      try {
-        user = await this.userRepository.findOne({ phoneNumber });
-        user.ip = ip;
-        user.userAgent = userAgent;
-        await this.userRepository.create(user);
-      } catch (error) {
-        if (error instanceof DatabaseError && error.getStatus() === HttpStatus.NOT_FOUND) {
-          user = await this.userRepository.create({ phoneNumber, ip, userAgent });
-        } else {
-          throw error;
-        }
-      }
-
-      return await this.onboardingService.sendOtp({ phoneNumber, ip });
     } catch (error) {
       if (error instanceof DatabaseError) {
         throw error;
