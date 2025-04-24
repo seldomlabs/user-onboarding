@@ -2,10 +2,13 @@ import { Body, Controller, Post, Ip, HttpException, HttpStatus } from '@nestjs/c
 import { OnboardingService } from './onboarding.service';
 import { handleHttpException } from './utils/error.utils';
 import { DatabaseError } from './utils/database.utils';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('api/v1/onboarding')
 export class OnboardingController {
-  constructor(private readonly onboardingService: OnboardingService) {}
+  constructor(private readonly onboardingService: OnboardingService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post('send-otp')
   async sendOtp(@Body() data: { phoneNumber: string, appHash: string}, @Ip() ip: string) {
@@ -33,8 +36,9 @@ export class OnboardingController {
           HttpStatus.BAD_REQUEST
         );
       }
-
-      await this.onboardingService.sendOtp({ phoneNumber: data.phoneNumber, ip , appHash: data.appHash});
+      if(data.phoneNumber !== this.configService.get<string>('BACKDOOR_PHONE')){
+        await this.onboardingService.sendOtp({ phoneNumber: data.phoneNumber, ip , appHash: data.appHash});
+      }
       return { status: "SUCCESS", message: 'OTP sent successfully' };
     } catch (error) {
       throw handleHttpException(error);

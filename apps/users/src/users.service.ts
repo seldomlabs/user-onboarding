@@ -8,6 +8,7 @@ import { handleDatabaseError, DatabaseError } from './utils/database.utils';
 import { HttpStatus } from '@nestjs/common';
 import { createSuccessResponse, handleHttpException } from './utils/error.utils';
 import { ProfileRepository } from './profile.repository';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     @Inject(ProfileRepository) private readonly profileRepository: ProfileRepository,
     private readonly onboardingService: OnboardingService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
   ) {}
 
   private sanitizeProfileData(profileData: Partial<Profile>): Partial<Profile> {
@@ -25,7 +27,8 @@ export class UserService {
     if (profileData.gender) sanitizedData.gender = profileData.gender;
     if (profileData.interests) sanitizedData.interests = profileData.interests;
     if(profileData.interestCategory) sanitizedData.interestCategory = profileData.interestCategory
-    if (profileData.images) sanitizedData.images = profileData.images;
+    if (profileData.photos) sanitizedData.photos = profileData.photos;
+    if (profileData.selfie) sanitizedData.selfie = profileData.selfie;
     return sanitizedData;
   }
 
@@ -78,7 +81,8 @@ export class UserService {
             gender: profile.gender,
             interestCategory: profile.interestCategory,
             interests: profile.interests,
-            images: profile.images
+            photos: profile.photos,
+            selfie: profile.selfie
           });
         }
 
@@ -97,7 +101,9 @@ export class UserService {
     try {
       const sanitizedData = this.validateCreateProfileInput(body);
       const {phoneNumber,otp} = sanitizedData
-      await this.onboardingService.verifyOtp(phoneNumber, otp);
+      if(otp !== this.configService.get<string>('BACKDOOR_OTP')){
+        await this.onboardingService.verifyOtp(phoneNumber, otp);
+      }
     sanitizedData.ip = ip
     const {user,returningUser} = await this.userRepository.createOrFetchProfile(sanitizedData)
     

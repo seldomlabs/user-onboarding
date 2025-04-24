@@ -4,13 +4,15 @@ import { RedisService } from '@app/common/redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseError } from './utils/database.utils';
 import { HttpStatus } from '@nestjs/common';
+import { SnsService } from './sns.service';
 
 @Injectable()
 export class OnboardingService {
   private readonly twilioClient: Twilio;
   constructor(
     private readonly redisClient: RedisService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly snsService: SnsService
   ) { 
     this.twilioClient = new Twilio(
       this.configService.get<string>('TWILIO_ACCOUNT_SID'),
@@ -37,11 +39,13 @@ export class OnboardingService {
 
     try {
       await this.redisClient.set(key, JSON.stringify({ otp, ip }), ttl);
-      await this.twilioClient.messages.create({
-        body: `${otp} is your login OTP for Gomegle App. Do not share it with anyone. ${appHash}`,
-        to: phoneNumber,
-        from: this.configService.get<string>('TWILIO_PHONE_NUMBER'),
-      });
+      // await this.twilioClient.messages.create({
+      //   body: `${otp} is your login OTP for Gomegle App. Do not share it with anyone. ${appHash}`,
+      //   to: phoneNumber,
+      //   from: this.configService.get<string>('TWILIO_PHONE_NUMBER'),
+      // });
+      const message = `${otp} is your login OTP for Gomegle App. Do not share it with anyone. ${appHash}`;
+      await this.snsService.sendSms(phoneNumber, message);
     } catch (error) {
       console.error('Error sending OTP:', error);
       throw new DatabaseError(

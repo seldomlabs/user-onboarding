@@ -5,6 +5,7 @@ import { RedisModule } from '@app/common/redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { REDIS_CLIENT } from './constants/service';
+import { SnsService } from './sns.service';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { REDIS_CLIENT } from './constants/service';
     RedisModule.register({ name: REDIS_CLIENT })
   ],
   controllers: [OnboardingController],
-  providers: [OnboardingService],
-  exports: [OnboardingService]
+  providers: [OnboardingService,SnsService],
+  exports: [OnboardingService, SnsService]
 })
 export class OnboardingModule { }

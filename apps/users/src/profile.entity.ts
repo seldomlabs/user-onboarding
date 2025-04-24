@@ -22,7 +22,10 @@ export class Profile extends AbstractEntity {
   interests: string[];
 
   @Column('simple-array', { nullable: true })
-  images: string[];
+  photos: string[];
+
+  @Column({ nullable: true })
+  selfie: string;
 
   @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

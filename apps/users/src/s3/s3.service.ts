@@ -56,7 +56,7 @@ export class S3Service {
         }, HttpStatus.BAD_REQUEST);
       }
 
-      const key = `profiles/${userId}/${Date.now()}-${file.originalname}`;
+      const key = `profiles/${userId}/photos/${Date.now()}-${file.originalname}`;
       
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
