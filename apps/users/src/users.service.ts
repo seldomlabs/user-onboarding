@@ -2,22 +2,23 @@ import { Injectable, BadRequestException, Inject, HttpException } from '@nestjs/
 import { UserRepository } from './users.repository';
 import { User } from './user.entity';
 import { Profile } from './profile.entity';
-import { OnboardingService } from '../../onboarding/src/onboarding.service';
 import { JwtService } from '@nestjs/jwt';
 import { handleDatabaseError, DatabaseError } from './utils/database.utils';
 import { HttpStatus } from '@nestjs/common';
 import { createSuccessResponse, handleHttpException } from './utils/error.utils';
 import { ProfileRepository } from './profile.repository';
 import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject(UserRepository) private readonly userRepository: UserRepository,
     @Inject(ProfileRepository) private readonly profileRepository: ProfileRepository,
-    private readonly onboardingService: OnboardingService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService 
   ) {}
 
   private sanitizeProfileData(profileData: Partial<Profile>): Partial<Profile> {
@@ -26,7 +27,7 @@ export class UserService {
     if (profileData.dateOfBirth) sanitizedData.dateOfBirth = profileData.dateOfBirth;
     if (profileData.gender) sanitizedData.gender = profileData.gender;
     if (profileData.interests) sanitizedData.interests = profileData.interests;
-    if(profileData.interestCategory) sanitizedData.interestCategory = profileData.interestCategory
+    if(profileData.interestCategories) sanitizedData.interestCategories = profileData.interestCategories
     if (profileData.photos) sanitizedData.photos = profileData.photos;
     if (profileData.selfie) sanitizedData.selfie = profileData.selfie;
     return sanitizedData;
@@ -79,7 +80,7 @@ export class UserService {
             name: profile.name,
             dateOfBirth: profile.dateOfBirth,
             gender: profile.gender,
-            interestCategory: profile.interestCategory,
+            interestCategories: profile.interestCategories,
             interests: profile.interests,
             photos: profile.photos,
             selfie: profile.selfie
@@ -92,7 +93,7 @@ export class UserService {
       if (error instanceof DatabaseError) {
         throw error;
       }
-      return handleDatabaseError(error);
+      throw handleDatabaseError(error);
     }
   }
   
@@ -101,8 +102,14 @@ export class UserService {
     try {
       const sanitizedData = this.validateCreateProfileInput(body);
       const {phoneNumber,otp} = sanitizedData
-      if(otp !== this.configService.get<string>('BACKDOOR_OTP')){
-        await this.onboardingService.verifyOtp(phoneNumber, otp);
+      if(otp !== this.configService.get<string>('BACKDOOR_OTP')){ 
+        await firstValueFrom(
+          this.httpService.post(
+            'http://localhost:4000/api/v1/onboarding/verify-otp',
+            { phoneNumber, otp }
+          )
+          // await this.onboardingService.verifyOtp(phoneNumber, otp);
+        );
       }
     sanitizedData.ip = ip
     const {user,returningUser} = await this.userRepository.createOrFetchProfile(sanitizedData)
@@ -117,13 +124,7 @@ export class UserService {
 
     } catch (error) {
     console.log(error)
-      if (error instanceof DatabaseError) {
-        throw error;
-      }
-      else if(error instanceof HttpException){
-        throw error
-      }
-      return handleDatabaseError(error);
+      throw handleHttpException(error)
     }
   }
 
@@ -138,7 +139,7 @@ export class UserService {
       if (error instanceof DatabaseError) {
         throw error;
       }
-      return handleDatabaseError(error);
+      throw handleDatabaseError(error);
     }
   }
 
@@ -163,7 +164,7 @@ export class UserService {
     return sanitizedData
   }
 
-  private generateToken(id: string): string {
+  private generateToken(id: string) {
     try {
       if (!id) {
         throw new HttpException({

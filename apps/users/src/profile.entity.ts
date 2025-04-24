@@ -15,8 +15,8 @@ export class Profile extends AbstractEntity {
   @Column({ type: 'enum', enum: Gender, nullable: true })
   gender: Gender;
 
-  @Column({ nullable: true })
-  interestCategory: string;
+  @Column('simple-array', { nullable: true })
+  interestCategories: string[];
 
   @Column('simple-array', { nullable: true })
   interests: string[];

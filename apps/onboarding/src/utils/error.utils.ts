@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { DatabaseError } from './database.utils';
 
 export const handleHttpException = (error: any) => {
@@ -14,5 +14,5 @@ export const handleHttpException = (error: any) => {
     status: "ERROR",
     message: "Internal server error",
     code: "INTERNAL_SERVER_ERROR",
-  }, 500);
+  }, HttpStatus.INTERNAL_SERVER_ERROR);
 }; 

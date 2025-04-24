@@ -20,7 +20,7 @@ export class ProfileRepository extends AbstractRepository<Profile> {
    sanitizeProfile(profile: any): any {
     if (!profile) return null;
   
-    const {name, gender, dateOfBirth, interestCategory, interests, photos, selfie, user,createdAt,updatedAt} = profile;
+    const {name, gender, dateOfBirth, interestCategories, interests, photos, selfie, user,createdAt,updatedAt} = profile;
     return {
       ...(user && {
         user_id: user.id,
@@ -29,7 +29,7 @@ export class ProfileRepository extends AbstractRepository<Profile> {
       name,
       dateOfBirth,
       gender,
-      interestCategory,
+      interestCategories,
       interests,
       photos,
       selfie,
@@ -75,7 +75,7 @@ export class ProfileRepository extends AbstractRepository<Profile> {
         name: null,
         dateOfBirth: null,
         gender: null,
-        interestCategory: null,
+        interestCategories: [],
         interests: [],
         photos: [],
         selfie: null

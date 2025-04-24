@@ -10,12 +10,12 @@ import { UserRepository } from './users.repository';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './jwt-auth-guard';
-import { OnboardingModule } from '../../onboarding/src/onboarding.module';
 import { ProfileRepository } from './profile.repository';
 import { Profile } from './profile.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { UploadController } from './upload/upload.controller';
 import { S3Service } from './s3/s3.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -33,6 +33,7 @@ import { S3Service } from './s3/s3.service';
       envFilePath: './apps/users/.env'
     }),
     PassportModule,
+    HttpModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
@@ -47,7 +48,6 @@ import { S3Service } from './s3/s3.service';
     }),
     DatabaseModule,
     TypeOrmModule.forFeature([User,Profile]),
-    OnboardingModule
   ],
   controllers: [UserController,UploadController],
   providers: [UserService, S3Service, UserRepository, ProfileRepository, JwtAuthGuard],

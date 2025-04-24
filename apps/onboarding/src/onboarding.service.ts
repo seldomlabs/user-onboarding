@@ -35,7 +35,7 @@ export class OnboardingService {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const key = `otp:${phoneNumber}`;
-    const ttl = 300;
+    const ttl = Number(this.configService.get<string>('OTP_EXPIRY_TIME_IN_SECONDS'));
 
     try {
       await this.redisClient.set(key, JSON.stringify({ otp, ip }), ttl);
